@@ -1,4 +1,4 @@
-use gc::{force_collect, Finalize, Gc, GcCell, Trace};
+use gc::{run_gc, Finalize, Gc, GcCell, Trace};
 use gc_derive::{Finalize, Trace};
 use std::cell::Cell;
 use std::thread::LocalKey;
@@ -99,12 +99,12 @@ fn basic_allocate() {
     {
         let _gced_val = Gc::new(GcWatch(&FLAGS));
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(0, 0, 1, 0, 0)));
-        force_collect();
+        run_gc().unwrap();
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
     }
 
     FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
-    force_collect();
+    run_gc().unwrap();
     FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 1, 1)));
 }
 
@@ -128,7 +128,7 @@ fn basic_cycle_allocate() {
         FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(0, 0, 1, 0, 0)));
         FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(0, 0, 1, 0, 0)));
 
-        force_collect();
+        run_gc().unwrap();
 
         FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
         FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
@@ -140,7 +140,7 @@ fn basic_cycle_allocate() {
             FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
             FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
 
-            force_collect();
+            run_gc().unwrap();
 
             FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 0, 1, 0, 0)));
             FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 0, 1, 0, 0)));
@@ -149,7 +149,7 @@ fn basic_cycle_allocate() {
         FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 0, 1, 0, 0)));
         FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 0, 1, 0, 0)));
 
-        force_collect();
+        run_gc().unwrap();
 
         FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 0, 0)));
         FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 0, 0)));
@@ -158,7 +158,7 @@ fn basic_cycle_allocate() {
     FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 0, 0)));
     FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 0, 0)));
 
-    force_collect();
+    run_gc().unwrap();
 
     FLAGS1.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 1, 1)));
     FLAGS2.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 0, 1, 1, 1)));
@@ -198,7 +198,7 @@ fn gccell_rooting() {
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(0, 0, 1, 0, 0)));
 
         // It should be traced by the GC
-        force_collect();
+        run_gc().unwrap();
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
 
         {
@@ -211,7 +211,7 @@ fn gccell_rooting() {
             FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(1, 0, 1, 0, 0)));
 
             // It should be traced by the GC
-            force_collect();
+            run_gc().unwrap();
             FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 0, 1, 0, 0)));
         }
 
@@ -224,7 +224,7 @@ fn gccell_rooting() {
 
             // It shouldn't be traced by the GC (as it's owned by the GcCell)
             // If it had rootable members, they would be traced by the GC
-            force_collect();
+            run_gc().unwrap();
             FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 1, 1, 0, 0)));
         }
 
@@ -232,12 +232,12 @@ fn gccell_rooting() {
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(2, 1, 2, 0, 0)));
 
         // It should be traced by the GC
-        force_collect();
+        run_gc().unwrap();
         FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 1, 2, 0, 0)));
     }
 
     // It should be collected by the GC
-    force_collect();
+    run_gc().unwrap();
     FLAGS.with(|f| assert_eq!(f.get(), GcWatchFlags::new(3, 1, 2, 1, 1)));
 }
 

@@ -208,12 +208,17 @@ fn collect_garbage(st: &mut GcState) {
 
 /// Immediately triggers a garbage collection on the current thread.
 ///
-/// This will panic if executed while a collection is currently in progress
-pub fn force_collect() {
+/// This will produce an error if executed while a collection is currently in progress
+pub fn run_gc() -> Result<(), impl std::error::Error> {
     GC_STATE.with(|st| {
-        let mut st = st.borrow_mut();
-        collect_garbage(&mut *st);
-    });
+        match st.try_borrow_mut() {
+            Err(error) => Err(error),
+            Ok(mut st) => {
+                collect_garbage(&mut *st);
+                Ok(())
+            },
+        }
+    })
 }
 
 pub struct GcConfig {

@@ -1,4 +1,4 @@
-use gc::{force_collect, Gc, GcCell};
+use gc::{run_gc, Gc, GcCell};
 use gc_derive::Trace;
 use std::cell::Cell;
 
@@ -37,7 +37,7 @@ fn test_cycle() {
     }
 
     println!("Before collection: {:?}", COUNTER.with(|s| s.get()));
-    force_collect();
+    run_gc().unwrap();
     println!("After collection: {:?}", COUNTER.with(|s| s.get()));
     assert_eq!(COUNTER.with(|s| s.get()), 4);
 }

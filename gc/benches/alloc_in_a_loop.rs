@@ -6,7 +6,7 @@ const THING: u64 = 0;
 
 fn discard(b: &mut test::Bencher, n: usize) {
     b.iter(|| {
-        gc::force_collect();
+        gc::run_gc().unwrap();
         for _ in 0..n {
             test::black_box(gc::Gc::new(THING));
         }
@@ -14,7 +14,7 @@ fn discard(b: &mut test::Bencher, n: usize) {
 }
 fn keep(b: &mut test::Bencher, n: usize) {
     b.iter(|| {
-        gc::force_collect();
+        gc::run_gc().unwrap();
         (0..n).map(|_| gc::Gc::new(THING)).collect::<Vec<_>>()
     })
 }
