@@ -1,3 +1,6 @@
+# Sublime Text Project
+*.sublime-workspace
+
 # Compiled files
 *.o
 *.so
