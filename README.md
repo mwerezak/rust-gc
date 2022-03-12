@@ -1,3 +1,7 @@
+# sphinx-lang
+
+This is a port of `rust-gc` for use with the `sphinx-lang` interpreter.
+
 # rust-gc
 [![Build Status](https://travis-ci.org/Manishearth/rust-gc.svg?branch=master)](https://travis-ci.org/Manishearth/rust-gc)
 
